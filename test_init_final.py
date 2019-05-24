@@ -538,9 +538,9 @@ async def on_message(msg):
 	global LoadChk
 	
 	id = msg.author.id #id라는 변수에는 메시지를 보낸사람의 ID를 담습니다.
-	channel = msg.channel.id #channel이라는 변수에는 메시지를 받은 채널의 ID를 담습니다
 	
 	if chflg == 0 :
+		channel = msg.channel.id #channel이라는 변수에는 메시지를 받은 채널의 ID를 담습니다
 		if basicSetting[7] == "":
 			inidata_textCH = repo.get_contents("test_setting.ini")
 			file_data_textCH = base64.b64decode(inidata_textCH.content)
@@ -708,6 +708,52 @@ async def on_message(msg):
 						)
 				await client.send_message(client.get_channel(channel), embed=embed, tts=False)
 				await dbSave()
+				
+		##################################
+
+		for i in range(bossNum):
+			if message.content.startswith(bossData[i][0] +'예상'):
+				tmp_msg = bossData[i][0] +'예상'
+				if len(hello) > len(tmp_msg) + 3 :
+					if hello.find(':') != -1 :
+						chkpos = hello.find(':')
+						hours1 = hello[chkpos-2:chkpos]
+						minutes1 = hello[chkpos+1:chkpos+3]
+						now2 = datetime.datetime.now() + datetime.timedelta(hours = int(basicSetting[0]))
+						tmp_now = datetime.datetime.now() + datetime.timedelta(hours = int(basicSetting[0]))
+						tmp_now = tmp_now.replace(hour=int(hours1), minute=int(minutes1))
+					else:
+						chkpos = len(hello)-2
+						hours1 = hello[chkpos-2:chkpos]
+						minutes1 = hello[chkpos:chkpos+2]
+						now2 = datetime.datetime.now() + datetime.timedelta(hours = int(basicSetting[0]))
+						tmp_now = datetime.datetime.now() + datetime.timedelta(hours = int(basicSetting[0]))
+						tmp_now = tmp_now.replace(hour=int(hours1), minute=int(minutes1))
+					
+					bossFlag[i] = False
+					bossFlag0[i] = False
+					bossMungFlag[i] = False
+					bossMungCnt[i] = 0
+
+					if tmp_now < now2 :
+						tmp_now = tmp_now + datetime.timedelta(days=int(1))
+
+					tmp_bossTime[i] = bossTime[i] = nextTime = tmp_now
+					tmp_bossTimeString[i] = bossTimeString[i] = nextTime.strftime('%H:%M:%S')
+					#print (tmp_bossTimeString[i])
+					tmp_bossDateString[i] = bossDateString[i] = nextTime.strftime('%Y-%m-%d')
+					#print (tmp_bossDateString[i])
+					#await client.send_message(channel, '다음 '+ bossData[i][0] + ' ' + bossTimeString[i] + '입니다.', tts=False)
+					embed = discord.Embed(
+							description= '다음 ' + bossData[i][0] + ' ' + bossTimeString[i] + '입니다.',
+							color=0xff0000
+							)
+					await client.send_message(client.get_channel(channel), embed=embed, tts=False)
+					await dbSave()
+				else:
+					await client.send_message(client.get_channel(channel), bossData[i][0] +' 예상 시간을 입력해주세요.', tts=False)
+					
+		##################################
 				
 			if message.content.startswith(bossData[i][0] +'삭제'):
 				bossTime[i] = datetime.datetime.now()+datetime.timedelta(days=365, hours = int(basicSetting[0]))
